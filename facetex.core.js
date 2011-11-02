@@ -9,7 +9,7 @@ function FaceTeXProcessElement(m){
     q.focus();
     return q
   }
-  if(/\\|\$\$|\{.+\}/i.test(src)){
+  if(/\\|\$\$|\{.+\}/i.test(src) && !/^''/.test(src)){
     var latex = src;
     var before = "";
     var after = "";
@@ -36,17 +36,24 @@ function FaceTeXProcessElement(m){
     
     m.innerHTML += link("#007fff");
     var i = new Image();
+    var div = document.createElement('div');
+    div.appendChild(i);
+    div.style.display = "inline";
+    div.style.overflowX = 'auto';
     i.title = i.alt = latex;
-    i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent('$${'+latex+'}$$');
+    var realtex = /\\\[/.test(latex) ? latex : ('\\['+latex+'\\]');
+    i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(realtex);
     i.onclick = function(){
       mepost().value += src;
     }
     i.onload = function(){
       var t = m.innerText;
-      console.log("yay");
+      if(parseInt(i.width) > 150){
+        div.style.display = "block";
+      }
       m.innerHTML = link("orange");
       m.appendChild(document.createTextNode(before))
-      m.appendChild(i);
+      m.appendChild(div);
       m.appendChild(document.createTextNode(after))
     }
     i.onerror = function(){
@@ -70,7 +77,7 @@ function FaceTeXFindElements(){
     var textinput = document.querySelectorAll('.fbDock textarea');
     for(var i = 0; i < textinput.length; i++){
       if(textinput[i] == document.activeElement && /facetex/i.test(textinput[i].value) && !/user.js|\\facetex/i.test(textinput[i].value)){
-        textinput[i].value += ' ' + "http://metaception.com/facetex.user.js";
+        textinput[i].value += ' ' + "http://metaception.com/facetex.user.js ";
         var evt = document.createEvent('HTMLEvents');
         evt.initEvent("keydown" , false, false);
         textinput[i].dispatchEvent(evt);
