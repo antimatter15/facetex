@@ -9,7 +9,7 @@ function FaceTeXProcessElement(m){
     q.focus();
     return q
   }
-  if(/\\|\$\$|\{.+\}/i.test(src) && !/^''/.test(src)){
+  if(/\\|\$\$|\{.+\}/i.test(src) && !/^''|[A-Z]:\\/.test(src)){
     var latex = src;
     var before = "";
     var after = "";
