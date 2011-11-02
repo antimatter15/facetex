@@ -1,32 +1,81 @@
 function FaceTeXProcessElement(m){
   m.className += " processed";
-  if(/\\|\$\$/i.test(m.innerText)){
-    var i = new Image();
-    var src = m.innerText, html = m.innerHTML;
-    i.title = i.alt = src;
-    m.innerHTML += "<a style='font-size:x-small;color:#007fff;float:right;text-decoration:none;font-weight:bold' href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(src)+"'>&there4;</a>";
-    i.onclick = function(){
-      var q = m;
-      while(!q.querySelector('textarea')) 
-        q = q.parentNode;
-      q = q.querySelector('textarea');
-      q.focus();
-      q.value += src;
+  var src = m.innerText, html = m.innerHTML;
+  function mepost(){
+    var q = m;
+    while(!q.querySelector('textarea')) 
+      q = q.parentNode;
+    q = q.querySelector('textarea');
+    q.focus();
+    return q
+  }
+  if(/\\|\$\$|\{.+\}/i.test(src)){
+    var latex = src;
+    var before = "";
+    var after = "";
+    
+    var re = latex.match(/\$\$(.+)\$\$/);
+    if(re){
+      before = latex.substr(0, re.index);
+      after = latex.substr(re[0].length + re.index);
+      latex = re[1];
+    }else if(/^\$\$/.test(latex)){
+      latex = latex.substr(2);
+    }else{
+      var words = latex.match(/^[a-zA-Z ']+/);
+      if(words){
+        before = words[0];
+        latex = latex.substr(words[0].length);
+      }
     }
-    i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(src);
+    latex = latex.replace(/\\facetex/ig, '\\text{Face}\\TeX');
+    
+    function link(color){
+      return "<a style='font-size:x-small;color:"+color+";float:right;text-decoration:none;font-weight:bold' target=_blank href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(latex)+"'>&there4;</a>";
+    }
+    
+    m.innerHTML += link("#007fff");
+    var i = new Image();
+    i.title = i.alt = latex;
+    i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent('$${'+latex+'}$$');
+    i.onclick = function(){
+      mepost().value += src;
+    }
     i.onload = function(){
       var t = m.innerText;
-      m.innerHTML = "<a style='font-size:x-small;color:orange;float:right;text-decoration:none;font-weight:bold' href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(src)+"'>&there4;</a>";;
+      console.log("yay");
+      m.innerHTML = link("orange");
+      m.appendChild(document.createTextNode(before))
       m.appendChild(i);
+      m.appendChild(document.createTextNode(after))
     }
     i.onerror = function(){
       m.innerHTML += " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
     }
-  }
+  }/*
+  if(/facetex/i.test(src)){
+    var q = m;
+    while(!q.querySelector('.profileLink')) 
+      q = q.parentNode;
+    if(document.querySelector('#blueBar').innerHTML.indexOf(q.querySelector('.profileLink').href) != -1){
+      mepost().value = "http://metaception.com/facetex.user.js";
+    }
+  }*/
 }
 
 function FaceTeXFindElements(){
-  var msg = document.querySelectorAll('.fbChatMessage:not(.processed),.MessagingMessage uiListItem:not(.processed)');
+  var msg = document.querySelectorAll('.fbChatMessage:not(.processed),.MessagingMessage .uiListItem:not(.processed)');
   for(var i = 0; i < msg.length; i++) FaceTeXProcessElement(msg[i]);
+  if(/textarea/i.test(document.activeElement.tagName)){
+    var textinput = document.querySelectorAll('.fbDock textarea');
+    for(var i = 0; i < textinput.length; i++){
+      if(textinput[i] == document.activeElement && /facetex/i.test(textinput[i].value) && !/user.js/i.test(textinput[i].value)){
+        textinput[i].value += ' ' + "http://metaception.com/facetex.user.js";
+        var evt = document.createEvent('HTMLEvents');
+        evt.initEvent("keydown" , false, false);
+        textinput[i].dispatchEvent(evt);
+      }
+    }
+  }
 }
 setInterval(FaceTeXFindElements, 762);
