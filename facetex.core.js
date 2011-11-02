@@ -69,7 +69,7 @@ function FaceTeXFindElements(){
   if(/textarea/i.test(document.activeElement.tagName)){
     var textinput = document.querySelectorAll('.fbDock textarea');
     for(var i = 0; i < textinput.length; i++){
-      if(textinput[i] == document.activeElement && /facetex/i.test(textinput[i].value) && !/user.js/i.test(textinput[i].value)){
+      if(textinput[i] == document.activeElement && /facetex/i.test(textinput[i].value) && !/user.js|\\facetex/i.test(textinput[i].value)){
         textinput[i].value += ' ' + "http://metaception.com/facetex.user.js";
         var evt = document.createEvent('HTMLEvents');
         evt.initEvent("keydown" , false, false);
