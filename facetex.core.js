@@ -64,7 +64,7 @@ function FaceTeXProcessElement(m){
 }
 
 function FaceTeXFindElements(){
-  var msg = document.querySelectorAll('.fbChatMessage:not(.processed),.MessagingMessage .uiListItem:not(.processed)');
+  var msg = document.querySelectorAll('.fbChatMessage:not(.processed),.MessagingMessage .uiListItem p:not(.processed)');
   for(var i = 0; i < msg.length; i++) FaceTeXProcessElement(msg[i]);
   if(/textarea/i.test(document.activeElement.tagName)){
     var textinput = document.querySelectorAll('.fbDock textarea');
