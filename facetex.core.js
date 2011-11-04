@@ -1,13 +1,16 @@
 function FaceTeXProcessElement(m){
   m.className += " processed";
   var src = m.innerText, html = m.innerHTML;
-  function mepost(){
+  function mepost(s){
     var q = m;
     while(!q.querySelector('textarea')) 
       q = q.parentNode;
     q = q.querySelector('textarea');
     q.focus();
-    return q
+    q.value += s;
+    var evt = document.createEvent('HTMLEvents');
+    evt.initEvent("keydown" , false, false);
+    q.dispatchEvent(evt);
   }
   if(/\\|\$\$|\{.+\}/i.test(src) && !/^''|[A-Z]:\\/.test(src)){
     var latex = src;
@@ -22,10 +25,10 @@ function FaceTeXProcessElement(m){
     }else if(/^\$\$/.test(latex)){
       latex = latex.substr(2);
     }else{
-      var words = latex.match(/^[a-zA-Z ']+/);
+      var words = latex.match(/[a-z]? ?[^a-zA-Z ']+/);
       if(words){
-        before = words[0];
-        latex = latex.substr(words[0].length);
+        before = words[0].substr(0, words.index);
+        latex = latex.substr(words.index);
       }
     }
     latex = latex.replace(/\\facetex/ig, '\\text{Face}\\TeX');
@@ -44,7 +47,7 @@ function FaceTeXProcessElement(m){
     var realtex = /\\\[/.test(latex) ? latex : ('\\['+latex+'\\]');
     i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(realtex);
     i.onclick = function(){
-      mepost().value += src;
+      mepost(src);
     }
     i.onload = function(){
       var t = m.innerText;
@@ -59,15 +62,7 @@ function FaceTeXProcessElement(m){
     i.onerror = function(){
       m.innerHTML += " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
     }
-  }/*
-  if(/facetex/i.test(src)){
-    var q = m;
-    while(!q.querySelector('.profileLink')) 
-      q = q.parentNode;
-    if(document.querySelector('#blueBar').innerHTML.indexOf(q.querySelector('.profileLink').href) != -1){
-      mepost().value = "http://metaception.com/facetex.user.js";
-    }
-  }*/
+  }
 }
 
 function FaceTeXFindElements(){
