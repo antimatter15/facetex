@@ -25,9 +25,9 @@ function FaceTeXProcessElement(m){
     }else if(/^\$\$/.test(latex)){
       latex = latex.substr(2);
     }else{
-      var words = latex.match(/[a-z]? ?[^a-zA-Z ']+/);
+      var words = latex.match(/(^|[^a-z])[a-z]? ?[^a-zA-Z ']+/);
       if(words){
-        before = words[0].substr(0, words.index);
+        before = latex.substr(0, words.index);
         latex = latex.substr(words.index);
       }
     }
