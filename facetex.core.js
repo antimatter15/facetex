@@ -55,9 +55,9 @@ function FaceTeXProcessElement(m){
         div.style.display = "block";
       }
       m.innerHTML = link("orange");
-      m.appendChild(document.createTextNode(before))
+      m.appendChild(document.createTextNode(before+' '))
       m.appendChild(div);
-      m.appendChild(document.createTextNode(after))
+      m.appendChild(document.createTextNode(' ' + after))
     }
     i.onerror = function(){
       m.innerHTML += " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
