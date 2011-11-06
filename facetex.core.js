@@ -44,7 +44,7 @@ function FaceTeXProcessElement(m){
     div.style.display = "inline";
     div.style.overflowX = 'auto';
     i.title = i.alt = latex;
-    var realtex = /\\\[/.test(latex) ? latex : ('\\['+latex+'\\]');
+    var realtex = /\\\[/.test(latex) ? latex : ('\\[{'+latex+'\\}]');
     i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(realtex);
     i.onclick = function(){
       mepost(src);
@@ -55,9 +55,9 @@ function FaceTeXProcessElement(m){
         div.style.display = "block";
       }
       m.innerHTML = link("orange");
-      m.appendChild(document.createTextNode(before+' '))
+      if(before) m.appendChild(document.createTextNode(before+' '));
       m.appendChild(div);
-      m.appendChild(document.createTextNode(' ' + after))
+      if(after) m.appendChild(document.createTextNode(' ' + after))
     }
     i.onerror = function(){
       m.innerHTML += " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
@@ -65,9 +65,94 @@ function FaceTeXProcessElement(m){
   }
 }
 
+
+function FaceTeXPost(element){
+  var q = element;
+  while(!q.querySelector('textarea')) 
+    q = q.parentNode;
+  q = q.querySelector('textarea');
+  q.focus();
+  q.value += element.title;
+  var evt = document.createEvent('HTMLEvents');
+  evt.initEvent("keydown" , false, false);
+  q.dispatchEvent(evt);
+}
+
+function FaceTeXProcess(text, matches){    
+  function link(color, status){
+    return "<a title='"+status+"' style='font-size:small;color:"+color+";float:right;text-decoration:none;font-weight:bold' target=_blank href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(text)+"'>&there4;</a>";
+  }
+  var html = text.replace(/\$\$\{(.*?)\}\$\$/g, function(all, match){
+    if(matches[match] == 'error'){ 
+      return '<span style="color: red">'+match+'</span>';
+    }else if(!matches[match] || matches[match] == match){
+      matches[match] = match;
+      return '<span style="color: #007fff">'+match+'</span>';
+    }else{
+      var display = (matches[match]).width > 150 ? 'block' : 'inline';
+      return '<span style="display:'+display+'; overflow-x: auto; "><img style="vertical-align: middle" onclick="FaceTeXPost(this)" title="'+match+'" src="'+(matches[match]).src+'"></span>'
+    }
+  });
+  console.log(text, JSON.stringify(matches));
+  var complete = 0, error = 0, loading = 0;
+  for(var t in matches){
+    if(matches.hasOwnProperty(t)){
+      if(matches[t] == t) loading++;
+      else if(matches[t] == 'error') error++;
+      else complete++;
+    }
+  }
+  if(error != 0){
+    html = link('red', 'error')  + html + " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
+  }else if(loading == 0) html = link('orange', 'loaded') + html;
+  else html = link('#007fff', 'loading') + html;
+  return html;
+}
+
+
+function FaceTeXImage(tex, callback){
+  var i = new Image();
+  //TODO: here goes the pre-TeX text transforms
+  var src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(tex);
+  i.onload = function(){
+  setTimeout(function(){
+    callback(tex, {
+      width: parseInt(i.width),
+      src: src
+    });
+    },5000 * Math.random());
+  }
+  i.onerror = function(){
+    callback(tex, 'error');
+  }
+  i.src = src;
+}
+
+
+function FaceTeXElement(m){
+  m.className += " processed";
+  var src = m.innerText, html = m.innerHTML;
+
+  if((/\\|\$\$|\{.+\}/i.test(src) || /(^| )[a-z][\^\_][a-z0-9]($| )/.test(src)) && !/^''|[A-Z]:\\/.test(src)){
+    var latex = src;
+    //TODO: here goes pre-search text transforms
+    var matches = {};
+    m.innerHTML = FaceTeXProcess(latex, matches);
+    for(var t in matches){
+      if(matches.hasOwnProperty(t) && matches[t] == t){
+        FaceTeXImage(t, function(tex, result){
+          matches[tex] = result;
+          m.innerHTML = FaceTeXProcess(latex, matches);
+        })
+      }
+    }
+  }
+}
+
+
 function FaceTeXFindElements(){
   var msg = document.querySelectorAll('.fbChatMessage:not(.processed),.MessagingMessage .uiListItem p:not(.processed)');
-  for(var i = 0; i < msg.length; i++) FaceTeXProcessElement(msg[i]);
+  for(var i = 0; i < msg.length; i++) FaceTeXElement(msg[i]);
   if(/textarea/i.test(document.activeElement.tagName)){
     var textinput = document.querySelectorAll('.fbDock textarea');
     for(var i = 0; i < textinput.length; i++){
