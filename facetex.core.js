@@ -1,71 +1,3 @@
-function FaceTeXProcessElement(m){
-  m.className += " processed";
-  var src = m.innerText, html = m.innerHTML;
-  function mepost(s){
-    var q = m;
-    while(!q.querySelector('textarea')) 
-      q = q.parentNode;
-    q = q.querySelector('textarea');
-    q.focus();
-    q.value += s;
-    var evt = document.createEvent('HTMLEvents');
-    evt.initEvent("keydown" , false, false);
-    q.dispatchEvent(evt);
-  }
-  if(/\\|\$\$|\{.+\}/i.test(src) && !/^''|[A-Z]:\\/.test(src)){
-    var latex = src;
-    var before = "";
-    var after = "";
-    
-    var re = latex.match(/\$\$(.+)\$\$/);
-    if(re){
-      before = latex.substr(0, re.index);
-      after = latex.substr(re[0].length + re.index);
-      latex = re[1];
-    }else if(/^\$\$/.test(latex)){
-      latex = latex.substr(2);
-    }else{
-      var words = latex.match(/(^|[^a-z])[a-z]? ?[^a-zA-Z ']+/);
-      if(words){
-        before = latex.substr(0, words.index);
-        latex = latex.substr(words.index);
-      }
-    }
-    latex = latex.replace(/\\facetex/ig, '\\text{Face}\\TeX');
-    
-    function link(color){
-      return "<a style='font-size:x-small;color:"+color+";float:right;text-decoration:none;font-weight:bold' target=_blank href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(latex)+"'>&there4;</a>";
-    }
-    
-    m.innerHTML += link("#007fff");
-    var i = new Image();
-    var div = document.createElement('div');
-    div.appendChild(i);
-    div.style.display = "inline";
-    div.style.overflowX = 'auto';
-    i.title = i.alt = latex;
-    var realtex = /\\\[/.test(latex) ? latex : ('\\[{'+latex+'\\}]');
-    i.src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(realtex);
-    i.onclick = function(){
-      mepost(src);
-    }
-    i.onload = function(){
-      var t = m.innerText;
-      if(parseInt(i.width) > 150){
-        div.style.display = "block";
-      }
-      m.innerHTML = link("orange");
-      if(before) m.appendChild(document.createTextNode(before+' '));
-      m.appendChild(div);
-      if(after) m.appendChild(document.createTextNode(' ' + after))
-    }
-    i.onerror = function(){
-      m.innerHTML += " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
-    }
-  }
-}
-
-
 function FaceTeXPost(element){
   var q = element;
   while(!q.querySelector('textarea')) 
@@ -82,7 +14,7 @@ function FaceTeXProcess(text, matches){
   function link(color, status){
     return "<a title='"+status+"' style='font-size:small;color:"+color+";float:right;text-decoration:none;font-weight:bold' target=_blank href='http://www.wolframalpha.com/input/?i="+encodeURIComponent(text)+"'>&there4;</a>";
   }
-  var html = text.replace(/\$\$\{(.*?)\}\$\$/g, function(all, match){
+  var html = text.replace(/(\$\$|\#\#)\{(.*?)\}(\$\$|\#\#)/g, function(all, z, match){
     if(matches[match] == 'error'){ 
       return '<span style="color: red">'+match+'</span>';
     }else if(!matches[match] || matches[match] == match){
@@ -93,7 +25,7 @@ function FaceTeXProcess(text, matches){
       return '<span style="display:'+display+'; overflow-x: auto; "><img style="vertical-align: middle" onclick="FaceTeXPost(this)" title="'+match+'" src="'+(matches[match]).src+'"></span>'
     }
   });
-  console.log(text, JSON.stringify(matches));
+  //console.log(text, JSON.stringify(matches));
   var complete = 0, error = 0, loading = 0;
   for(var t in matches){
     if(matches.hasOwnProperty(t)){
@@ -113,15 +45,19 @@ function FaceTeXProcess(text, matches){
 
 function FaceTeXImage(tex, callback){
   var i = new Image();
+  var latex = tex;
   //TODO: here goes the pre-TeX text transforms
-  var src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(tex);
+  latex = latex.replace(/\\facetex/i, '\\text{Face}\\TeX_3');
+  if(/^\\includegraphics{(.*)}$/.test(latex)){
+    return callback(tex, {width: 200, src: /^\\includegraphics{(.*)}$/.exec(latex)[1]})
+  }
+  ////////////////////////
+  var src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(latex);
   i.onload = function(){
-  setTimeout(function(){
     callback(tex, {
       width: parseInt(i.width),
       src: src
     });
-    },5000 * Math.random());
   }
   i.onerror = function(){
     callback(tex, 'error');
@@ -133,10 +69,30 @@ function FaceTeXImage(tex, callback){
 function FaceTeXElement(m){
   m.className += " processed";
   var src = m.innerText, html = m.innerHTML;
-
-  if((/\\|\$\$|\{.+\}/i.test(src) || /(^| )[a-z][\^\_][a-z0-9]($| )/.test(src)) && !/^''|[A-Z]:\\/.test(src)){
+  //matches things like v_0, a_0, a^2, b^2, 5^7, v_{initial}
+  var var_re = /(^| )([0-9][\^\_][0-9]|[a-z][\^\_]\{[a-z0-9\}\^\_]+|[a-z][\^\_][a-z0-9][\^\_]?[a-z0-9]?)($| )/g;
+  
+  if((/\\|\$\$|\{.+\}/i.test(src) || var_re.test(src)) && !/^''|[A-Z]:\\/.test(src) && !/^\\\\/.test(src)){
     var latex = src;
     //TODO: here goes pre-search text transforms
+    if(/\$\$\{(.*)\}\$\$/.test(latex)){
+      //run unmodified
+    }else if(/^\$\$/.test(latex)){
+      latex = '##{$$' + latex.replace(/\$\$/g, '') + '$$}##'
+    }else{
+      var strange = latex.split(/[^a-z0-9 '\?\!\.]/i).length - 1;
+      if(strange < 3){
+        latex = latex.replace(var_re, '$1##{$2}##$3');
+        latex = latex.replace(/(\\[a-z]+([^a-z ][a-z]*)*(\{.*?\})*( [a-z0-9]{1,3})?)/ig, '##{$1}##')
+        
+      }else{
+        latex = latex.replace(/((^|[^a-z])[a-z]? ?[^a-zA-Z ']+.*?)( [a-z '\?\!\.]{3,})?$/i, '$2##{$1}##$3')
+      }
+    }
+    
+    
+    //console.log(latex);
+    //////////////////////////////
     var matches = {};
     m.innerHTML = FaceTeXProcess(latex, matches);
     for(var t in matches){
@@ -166,4 +122,4 @@ function FaceTeXFindElements(){
     }
   }
 }
-setInterval(FaceTeXFindElements, 762);
+setInterval(FaceTeXFindElements, 271);

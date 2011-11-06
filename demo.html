@@ -12,7 +12,10 @@ textarea {
   border: 1px solid #ddd;
 }
 </style>
-<textarea onkeydown="var e = event;if(e.keyCode==13){d=document.createElement('div');d.className='fbChatMessage';d.innerHTML=e.target.value;e.target.value='';document.body.appendChild(d);}"></textarea>
+<div class="fbDock">
+<textarea onkeyup="var e = event;if(e.keyCode==13){d=document.createElement('div');d.className='fbChatMessage';d.innerHTML=e.target.value;e.target.value='';document.body.appendChild(d);}"></textarea>
+</div>
+
 <div class="fbChatMessage">
 Hello, this is some sample text that shouldn't be LaTeX'd.
 </div>
@@ -41,5 +44,50 @@ If I were to talk about a $${v_0}$$ with respect to an $${a_0}$$
 As the $${\mu}$$ $${\beta}$$ then $${\Delta x}$$ is $${\le 42}$$
 </div>
 
+<div class="fbChatMessage">
+the formula is \Delta x = v_0 t + \frac{1}{2} a t^2 i think
+</div>
 
+
+<div class="fbChatMessage">
+i think hooke's law is \mathbf{F} = -k\mathbf{x}
+</div>
+
+<div class="fbChatMessage">
+its also probably \mathbf{F} = -kx if you're lazy with the bf's
+</div>
+
+<div class="fbChatMessage">
+heisenberg said that \Delta x \Delta p \ge \frac{\hbar}{2}
+</div>
+
+<div class="fbChatMessage">
+newton said that W = \int_C \mathbf{F}(r)  dr
+</div>
+
+<div class="fbChatMessage">
+the answer is v_0 even though a_2 is probably a more correct answer
+</div>
+<div class="fbChatMessage">
+for the experiment i got 32.8^{+0.0098}_{-0.00082} does this look right to you?
+</div>
+<div class="fbChatMessage">
+\\actionjax-pc\media\music\data
+</div>
+<div class="fbChatMessage">
+C:\Windows\System32\etc\hosts\onestop.mp3
+</div>
+<div class="fbChatMessage">
+\[ \begin{array}{lcr}
+\mbox{First number} & x & 8 \\
+\mbox{Second number} & y & 15 \\
+\mbox{Sum} & x + y & 23 \\
+\mbox{Difference} & x - y & -7 \\
+\mbox{Product} & xy & 120 \end{array}\] 
+</div>
+<div class="fbChatMessage">
+\[ |x| = \left\{ \begin{array}{ll}
+         x & \mbox{if $x \geq 0$};\\
+        -x & \mbox{if $x < 0$}.\end{array} \right. \] 
+</div>
 <script src="facetex.core.js"></script>
