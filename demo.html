@@ -12,7 +12,7 @@ textarea {
   border: 1px solid #ddd;
 }
 </style>
-<textarea></textarea>
+<textarea onkeydown="var e = event;if(e.keyCode==13){d=document.createElement('div');d.className='fbChatMessage';d.innerHTML=e.target.value;e.target.value='';document.body.appendChild(d);}"></textarea>
 <div class="fbChatMessage">
 Hello, this is some sample text that shouldn't be LaTeX'd.
 </div>

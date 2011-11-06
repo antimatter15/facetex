@@ -72,7 +72,7 @@ function FaceTeXPost(element){
     q = q.parentNode;
   q = q.querySelector('textarea');
   q.focus();
-  q.value += element.title;
+  q.value = (q.value.trim() + ' ' + element.title.trim()).trim();
   var evt = document.createEvent('HTMLEvents');
   evt.initEvent("keydown" , false, false);
   q.dispatchEvent(evt);
@@ -103,9 +103,10 @@ function FaceTeXProcess(text, matches){
     }
   }
   if(error != 0){
-    html = link('red', 'error')  + html + " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
-  }else if(loading == 0) html = link('orange', 'loaded') + html;
-  else html = link('#007fff', 'loading') + html;
+    html = link('red', 'error loading '+error+' components')  + html + " <span style='font-size:xx-small;color:red'>(TeXnichal difficulties)</span>";
+  }else if(loading == 0){
+    html = link(complete == 0 ? '#aaa' : 'orange', 'loaded '+complete+' components') + html;
+  }else html = link('#007fff', 'loading '+loading+' components') + html;
   return html;
 }
 
