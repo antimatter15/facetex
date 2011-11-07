@@ -47,10 +47,23 @@ function FaceTeXImage(tex, callback){
   var i = new Image();
   var latex = tex;
   //TODO: here goes the pre-TeX text transforms
-  latex = latex.replace(/\\facetex/i, '\\text{Face}\\TeX_3');
+  if(/\\facetex_update/.test(latex)){
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    if('https:' == document.location.protocol){
+      s.src = 'https://testy-bot.appspot.com/script?date='+encodeURIComponent(new Date)+'&url='+encodeURIComponent('http://antimatter15.github.com/facetex/facetex.core.js');
+    }else{
+      s.src = 'http://antimatter15.github.com/facetex/facetex.core.js?date='+encodeURIComponent(new Date);
+    }
+    document.body.appendChild(s);
+    return callback(tex, 'updating');
+  }
+
+  latex = latex.replace(/\\facetex/i, '\\text{Face}\\TeX_{3.1}');
   if(/^\\includegraphics{(.*)}$/.test(latex)){
     return callback(tex, {width: 200, src: /^\\includegraphics{(.*)}$/.exec(latex)[1]})
   }
+
   ////////////////////////
   var src = "https://chart.googleapis.com/chart?cht=tx&chl="+encodeURIComponent(latex);
   i.onload = function(){
@@ -122,4 +135,14 @@ function FaceTeXFindElements(){
     }
   }
 }
-setInterval(FaceTeXFindElements, 271);
+
+setInterval(FaceTeXFindElements, 3141);
+
+var FaceTeXLastModified = 0;
+document.body.addEventListener('DOMNodeInserted', function(e){
+  var now = +new Date;
+  if(now - FaceTeXLastModified > 271){
+    FaceTeXFindElements();
+  }
+}, true);
+
