@@ -47,17 +47,6 @@ function FaceTeXImage(tex, callback){
   var i = new Image();
   var latex = tex;
   //TODO: here goes the pre-TeX text transforms
-  if(/\\facetex_update/.test(latex)){
-    var s = document.createElement('script');
-    s.type = 'text/javascript';
-    if('https:' == document.location.protocol){
-      s.src = 'https://testy-bot.appspot.com/script?date='+encodeURIComponent(new Date)+'&url='+encodeURIComponent('http://antimatter15.github.com/facetex/facetex.core.js');
-    }else{
-      s.src = 'http://antimatter15.github.com/facetex/facetex.core.js?date='+encodeURIComponent(new Date);
-    }
-    document.body.appendChild(s);
-    return callback(tex, 'updating');
-  }
 
   latex = latex.replace(/\\facetex/i, '\\text{Face}\\TeX_{3.1}');
   if(/^\\includegraphics{(.*)}$/.test(latex)){
